@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head> </head>
+  <body class="container">
+    <h1>Calculadora Online</h1>
+    <form action="/execute-operation" method="post">
+      <label for="operation">Selecione uma operação:</label>
+      <select name="operation" id="operation">
+        <% response.operations.forEach(operation => { %>
+        <option value="<%= operation.name %>"><%= operation.name %></option>
+        <% }) %>
+      </select>
+      <br />
+      <label for="param1">Parâmetro 1:</label>
+      <input type="text" id="param1" name="param1" required />
+      <br />
+      <label for="param2">Parâmetro 2:</label>
+      <input type="text" id="param2" name="param2" required />
+      <br />
+      <button type="submit">Executar</button>
+    </form>
+  </body>
+</html>
