@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package default;
+
+
+message Item {
+  string id = 1;
+  string name = 2;
+  string priceUsd = 3;
+}
+
+message Data {
+  repeated Item items = 1 ;
+}
