@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
+const xml2js = require("xml2js");
 const protobuf = require("protobufjs");
 const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
@@ -10,6 +11,7 @@ var VoteArray = [];
 let Data;
 let Item;
 
+// Configuração do proto buffer
 protobuf.load("data.proto", (err, root) => {
   if (err) {
     throw err;
@@ -50,6 +52,7 @@ app.use(express.json());
 
 //Rota Proto buffer
 app.get("/moedas", async (req, res) => {
+  //Consulta Api externa
   const response = await getAssets();
   const items = [];
   response.data.forEach((item) =>
@@ -64,7 +67,6 @@ app.get("/moedas", async (req, res) => {
   );
   const itemList = Data.create({ items });
   const buffer = Data.encode(itemList).finish();
-  console.log(Data.decode(buffer));
   // Envia o buffer codificado como resposta
   res.set("Content-Type", "application/x-protobuf");
   res.send(buffer);
@@ -72,35 +74,84 @@ app.get("/moedas", async (req, res) => {
 
 //remover voto
 app.delete("/vote", (req, res) => {
+  const type_out = req.body.type_out || "json";
   const { id } = req.body;
+
   VoteArray = removeItemById(VoteArray, id);
-  res.json({ message: " Voto removido" });
+
+  const responseObject = { message: "Voto removido" };
+
+  if (type_out === "xml") {
+    // Convert  to XML format
+    const builder = new xml2js.Builder({
+      rootName: "response",
+      headless: true,
+    });
+    const xml = builder.buildObject(responseObject);
+
+    res.header("Content-Type", "application/xml");
+    res.send(xml);
+  } else {
+    // Default to JSON format
+    res.json(responseObject);
+  }
 });
 
 app.get("/vote", (req, res) => {
-  res.json(VoteArray);
+  const type_out = req.body.type_out || "json";
+  if (type_out === "xml") {
+    // Convert VoteArray to XML format
+    const builder = new xml2js.Builder({ rootName: "votes", headless: true });
+    const xml = builder.buildObject({ vote: VoteArray });
+
+    res.header("Content-Type", "application/xml");
+    res.send(xml);
+  } else {
+    // Default to JSON format
+    res.json(VoteArray);
+  }
 });
 
 app.post("/vote", (req, res) => {
+  const type_out = req.body.type_out || "json";
   const { name, currency } = req.body;
+
+  // Add new vote to the array
   VoteArray.push({
     id: name,
     name: name,
     currency: currency,
   });
 
-  res.json({
+  // Response object
+  const responseObject = {
     id: name,
     name: name,
     currency: currency,
     message: "Voto cadastrado com sucesso",
-  });
+  };
+
+  if (type_out === "xml") {
+    // Convert responseObject to XML format
+    const builder = new xml2js.Builder({
+      rootName: "response",
+      headless: true,
+    });
+    const xml = builder.buildObject(responseObject);
+
+    res.header("Content-Type", "application/xml");
+    res.send(xml);
+  } else {
+    // Default to JSON format
+    res.json(responseObject);
+  }
 });
 
 app.listen(5000, () => {
   console.log("Server started on http://localhost:5000");
 });
 
+//Consulta Api externa
 async function getAssets() {
   const data = await fetch("https://api.coincap.io/v2/assets");
   const response = await data.json();
