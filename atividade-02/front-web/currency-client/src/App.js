@@ -1,23 +1,48 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import * as protobuf from "protobufjs";
-import { Data } from "./data.proto";
+import { load } from "protobufjs";
+
 import "./App.css";
 
+let Data;
+let Item;
+
+// Configuração do proto buffer
+load("data.proto", (err, root) => {
+  if (err) {
+    throw err;
+  }
+  Data = root.lookupType("mypackage.Data");
+  Item = root.lookupType("mypackage.Item");
+});
+
 function App() {
-  const [options, setOptions] = useState([]);
-  const [name, setName] = useState("");
-  const [currency, setCurrency] = useState("");
-  const [selectedOption, setSelectedOption] = useState("");
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProtobufData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/moedas", {
-          responseType: "arraybuffer",
-        });
-        const buffer = response.data;
-        console.log(buffer);
+        // Load the protobuf definition
+        // const root = await protobuf.load(PROTO_URL);
+        //const Data = root.lookupType("default.Data");
+
+        // Fetch binary data from the backend
+        const response = await fetch("http://localhost:5000/moedas"); // Adjust the API endpoint as needed
+
+        const buffer = await response.arrayBuffer();
+
+        const message = Data.decode(new Uint8Array(buffer));
+        console.log(message);
+        setItems(message);
+        //const object = Data.toObject(message, {
+        //  longs: String,
+        //    enums: String,
+        //    bytes: String,
+        //  });
+
+        //console.log(object.items);
+        //setItems(object.items);
 
         // Decode the protobuf data
         // const itemList = Data.decode(new Uint8Array(buffer));
@@ -40,63 +65,21 @@ function App() {
     fetchProtobufData();
   }, []);
 
-  const handleVote = (id) => {
-    axios
-      .post("http://localhost:5000/vote", { id })
-      .then(() => {
-        // setOptions((prevOptions) =>
-        //   prevOptions.map((option) =>
-        //     option.id === id ? { ...option, votes: option.votes + 1 } : option
-        //   )
-        // );
-      })
-      .catch((error) => {
-        console.error("There was an error voting!", error);
-      });
-  };
-
   return (
     <>
-      <h1>Voting System</h1>
       <div>
-        <h2>Add New Option</h2>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          // onChange={(e) => setName(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Currency"
-          value={currency}
-          // onChange={(e) => setCurrency(e.target.value)}
-        />
-        <button onClick={handleVote(1)}>Add Option</button>
+        <h1>Items List</h1>
+        <ul>
+          {items.items.map((item) => (
+            <li key={item.id}>
+              <strong>Name:</strong> {item.name}
+              <br />
+              <strong>Price:</strong> {item.priceUsd}
+            </li>
+          ))}
+        </ul>
       </div>
     </>
-    // <div className="App">
-    //   <h1>Items List</h1>
-    //   <div>
-    //     {items.length > 0 ? (
-    //       items.map((item) => (
-    //         <div key={item.id} style={{ marginBottom: "10px" }}>
-    //           <p>ID: {item.id}</p>
-    //           <p>Name: {item.name}</p>
-    //           <p>Price (USD): {item.priceUsd}</p>
-    //           <p>
-    //             Link:{" "}
-    //             <a href={item.link} target="_blank" rel="noopener noreferrer">
-    //               {item.link}
-    //             </a>
-    //           </p>
-    //         </div>
-    //       ))
-    //     ) : (
-    //       <p>Loading...</p>
-    //     )}
-    //   </div>
-    // </div>
   );
 }
 
