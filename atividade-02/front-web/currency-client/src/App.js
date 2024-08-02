@@ -135,7 +135,7 @@ function App() {
           onChange={(e) => setVoteCurrency(e.target.value)}
           placeholder="Criptomoeda"
         />
-        <button onClick={handleAddVote}>Submit Vote</button>
+        <button onClick={handleAddVote}>Votar</button>
         <h2>Votos registrados </h2>
         <ul>
           {votes.map((vote) => (
