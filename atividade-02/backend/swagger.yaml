@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+    title: 'API Exemplo'
+    version: 1.0.0
+    description: 'Documentação da API de exemplo usando Swagger'
+servers:
+    -
+        url: 'http://localhost:5000'
+        description: 'Servidor local'
+components:
+    schemas:
+        Vote:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                currency:
+                    type: string
+        ResponseMessage:
+            type: object
+            properties:
+                message:
+                    type: string
+        ProtobufItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                priceUsd:
+                    type: string
+                link:
+                    type: string
+        ProtobufData:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ProtobufItem'
+paths:
+    /moedas:
+        get:
+            summary: 'Retrieve a list of assets in protobuf format'
+            responses:
+                '200':
+                    description: 'A protobuf encoded list of assets'
+                    content:
+                        application/x-protobuf:
+                            schema:
+                                $ref: '#/components/schemas/ProtobufData'
+                '500':
+                    description: 'Internal server error'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+    /vote:
+        delete:
+            summary: 'Remove a vote'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                type_out:
+                                    type: string
+                                    enum: [json, xml]
+                                    default: json
+            responses:
+                '200':
+                    description: 'Vote removed'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                        application/xml:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                '400':
+                    description: 'Bad request'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                        application/xml:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                '500':
+                    description: 'Internal server error'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                        application/xml:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+        get:
+            summary: 'Retrieve the list of votes'
+            responses:
+                '200':
+                    description: 'A list of votes'
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Vote'
+                        application/xml:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Vote'
+                '500':
+                    description: 'Internal server error'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                        application/xml:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+        post:
+            summary: 'Add a new vote'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                currency:
+                                    type: string
+                                type_out:
+                                    type: string
+                                    enum: [json, xml]
+                                    default: json
+            responses:
+                '200':
+                    description: 'Vote added'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Vote'
+                        application/xml:
+                            schema:
+                                $ref: '#/components/schemas/Vote'
+                '400':
+                    description: 'Bad request'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                        application/xml:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                '500':
+                    description: 'Internal server error'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+                        application/xml:
+                            schema:
+                                $ref: '#/components/schemas/ResponseMessage'
+tags: []
